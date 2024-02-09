@@ -9,7 +9,7 @@ import (
 	"context"
 )
 
-const createAuthor = `-- name: CreateAuthor :one
+const createAccount = `-- name: CreateAccount :one
 INSERT INTO accounts (
   owner,
   balance,
@@ -20,14 +20,14 @@ INSERT INTO accounts (
 RETURNING id, owner, balance, currency, created_at
 `
 
-type CreateAuthorParams struct {
+type CreateAccountParams struct {
 	Owner    string
 	Balance  int64
 	Currency string
 }
 
-func (q *Queries) CreateAuthor(ctx context.Context, arg CreateAuthorParams) (Account, error) {
-	row := q.db.QueryRow(ctx, createAuthor, arg.Owner, arg.Balance, arg.Currency)
+func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error) {
+	row := q.db.QueryRow(ctx, createAccount, arg.Owner, arg.Balance, arg.Currency)
 	var i Account
 	err := row.Scan(
 		&i.ID,
@@ -37,4 +37,60 @@ func (q *Queries) CreateAuthor(ctx context.Context, arg CreateAuthorParams) (Acc
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const getAccount = `-- name: GetAccount :one
+SELECT id, owner, balance, currency, created_at FROM accounts
+WHERE id = $1 LIMIT 1
+`
+
+func (q *Queries) GetAccount(ctx context.Context, id int64) (Account, error) {
+	row := q.db.QueryRow(ctx, getAccount, id)
+	var i Account
+	err := row.Scan(
+		&i.ID,
+		&i.Owner,
+		&i.Balance,
+		&i.Currency,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const listAccount = `-- name: ListAccount :many
+SELECT id, owner, balance, currency, created_at FROM accounts
+ORDER BY id
+LIMIT $1
+OFFSET $2
+`
+
+type ListAccountParams struct {
+	Limit  int32
+	Offset int32
+}
+
+func (q *Queries) ListAccount(ctx context.Context, arg ListAccountParams) ([]Account, error) {
+	rows, err := q.db.Query(ctx, listAccount, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Account
+	for rows.Next() {
+		var i Account
+		if err := rows.Scan(
+			&i.ID,
+			&i.Owner,
+			&i.Balance,
+			&i.Currency,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
