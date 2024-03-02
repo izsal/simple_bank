@@ -18,6 +18,9 @@ sqlc:
 test :
 	go test -v -cover ./...
 
+server :
+	go run main.go
+
 .PHONY:
 	postgres
 	createdb
@@ -26,3 +29,4 @@ test :
 	migratedown
 	sqlc
 	test
+	server
