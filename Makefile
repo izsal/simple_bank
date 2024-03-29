@@ -21,6 +21,9 @@ test :
 server :
 	go run main.go
 
+mock: 
+	mockgen -package mockdb -destination db/mock/store.go github.com/izsal/simple_bank/db/sqlc Store
+
 .PHONY:
 	postgres
 	createdb
@@ -30,3 +33,4 @@ server :
 	sqlc
 	test
 	server
+	mock
