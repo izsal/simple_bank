@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"math/rand"
 	"strings"
 	"time"
@@ -40,8 +41,14 @@ func RandomMoney() int64 {
 	return RandomInt(0, 1000)
 }
 
+// This Go function generates a random currency.
 func RandomCurrency() string {
 	currencies := []string{USD, EUR, CAD}
 	n := len(currencies)
 	return currencies[rand.Intn(n)]
+}
+
+// This function generates a random email address.
+func RandomEmail() string {
+	return fmt.Sprintf("%s@email.com", RandomString(6))
 }
